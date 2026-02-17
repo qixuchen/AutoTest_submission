@@ -1,0 +1,10 @@
+
+storage_root/
+
+code/AutoTest/results/
+
+*.pyc
+
+code/AutoTest/.idea/
+
+**/__pycache__/
