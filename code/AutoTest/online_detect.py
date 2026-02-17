@@ -75,7 +75,7 @@ if any([rule[1][0] == 'validator' for rule in rule_list]):
 final_res = pd.DataFrame()
 for r in results:
     for idx, row in r.iterrows():
-        if idx not in final_res.index:
+        if idx not in final_res.index or row["outlier"] not in final_res["outlier"].to_list():
             final_res = final_res.append(row)
         else:
             if row['conf'] < final_res.loc[idx, 'conf']:
