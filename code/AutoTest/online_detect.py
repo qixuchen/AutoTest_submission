@@ -24,7 +24,7 @@ if not os.path.exists('./results/detected_outliers'):
     os.makedirs('./results/detected_outliers')
 
 input_df = pd.read_csv(args.csv_fname, dtype=str)
-df = input_df.apply(lambda x: [list(set([v for v in x.tolist() if pd.notna(v)]))], axis=0).T.reset_index()
+df = input_df.apply(lambda x: [list([v for v in x.tolist() if pd.notna(v)])], axis=0).T.reset_index()
 df.columns = ['header', 'dist_val']
 
 rule_df = pd.read_csv(args.sdc_fname, sep = '\t')
