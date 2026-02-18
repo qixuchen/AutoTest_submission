@@ -7,22 +7,27 @@ from dataprep import clean
 
 def get_farthest_val_and_score(dist_val, t):
     assert t in ['email', 'ip', 'url', 'date']
+    vals = []
     if t == 'email':
         for val in dist_val:
             if clean.validate_email(val) == False:
-                return val, 0
+                vals.append(val)
+        return vals, 0
     elif t == 'ip':
         for val in dist_val:
             if clean.validate_ip(val) == False:
-                return val, 0
+                vals.append(val)
+        return vals, 0
     elif t == 'url':
         for val in dist_val:
             if clean.validate_url(val) == False:
-                return val, 0
+                vals.append(val)
+        return vals, 0
     elif t == 'date':
         for val in dist_val:
             if clean.validate_date(val) == False:
-                return val, 0
+                vals.append(val)
+        return vals, 0
     return None, 0
 
 

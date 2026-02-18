@@ -24,7 +24,7 @@ if not os.path.exists('./results/detected_outliers'):
     os.makedirs('./results/detected_outliers')
 
 input_df = pd.read_csv(args.csv_fname, dtype=str)
-df = input_df.apply(lambda x: [list(set(x.tolist()))], axis=0).T.reset_index()
+df = input_df.apply(lambda x: [list([v for v in x.tolist() if pd.notna(v)])], axis=0).T.reset_index()
 df.columns = ['header', 'dist_val']
 
 rule_df = pd.read_csv(args.sdc_fname, sep = '\t')
@@ -75,7 +75,7 @@ if any([rule[1][0] == 'validator' for rule in rule_list]):
 final_res = pd.DataFrame()
 for r in results:
     for idx, row in r.iterrows():
-        if idx not in final_res.index:
+        if idx not in final_res.index or row["outlier"] not in final_res["outlier"].to_list():
             final_res = final_res.append(row)
         else:
             if row['conf'] < final_res.loc[idx, 'conf']:
