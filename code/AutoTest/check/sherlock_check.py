@@ -10,6 +10,16 @@ def get_farthest_val_and_score(dist_val, label):
     farthest_idx = np.argmin(label_score)
     return dist_val[farthest_idx], label_score[farthest_idx]
 
+def get_all_val_and_score_over_thres(dist_val, label, score_thres):
+    y_pred, _, _ = sherlock_utils.predict([[v] for v in dist_val], model = None)
+    label_idx = sherlock_utils.class_list.index(label)
+    label_score = y_pred[:, label_idx]
+    farthest_idx = np.argmin(label_score)
+
+    if label_score[farthest_idx] > score_thres:
+        return dist_val[farthest_idx], label_score[farthest_idx]
+    vals = [val for i, val in enumerate(dist_val) if label_score[i] <= score_thres]
+    return vals, label_score[farthest_idx]
 
 def sherlock_check_parallel_core(ns, start, end, queue):
         df = pd.DataFrame(ns.df[start : end], columns = ns.df_col, index = ns.df_idx[start : end])
@@ -26,7 +36,7 @@ def sherlock_check_parallel_core(ns, start, end, queue):
             matching_rows = utils.get_matching_rows_from_idx_dict(df, test_matching_dict, pre).copy()
             if len(matching_rows) == 0: continue
             matching_rows = matching_rows.assign(outlier = None, pre = None, outlier_score = -100, conf = -100, thres = -100, cohenh = -100, contingency = None)
-            matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_farthest_val_and_score(row['dist_val'], label), axis = 1, result_type = 'expand')
+            matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_all_val_and_score_over_thres(row['dist_val'], label, score_thres), axis = 1, result_type = 'expand')
             matching_rows = matching_rows[matching_rows['outlier_score'] <= score_thres].copy()
             if len(matching_rows) == 0: continue
             matching_rows['conf'] = conf
