@@ -7,18 +7,22 @@ from util import utils, pyfunc_utils
 
 def get_farthest_val_and_score(dist_val, t):
     assert t in ['email', 'ip', 'url']
+    vals = []
     if t == 'email':
         for val in dist_val:
             if not validators.email(val):
-                return val, 0
+                vals.append(val)
+        return vals, 0
     elif t == 'ip':
         for val in dist_val:
             if not validators.ip_address.ipv4(val):
-                return val, 0
+                vals.append(val)
+        return vals, 0
     elif t == 'url':
         for val in dist_val:
             if not validators.url(val):
-                return val, 0
+                vals.append(val)
+        return vals, 0
     return None, 0
 
 
