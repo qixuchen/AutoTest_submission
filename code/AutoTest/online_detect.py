@@ -78,7 +78,7 @@ for r in results:
         if idx not in final_res.index or row["outlier"] not in final_res["outlier"].to_list():
             final_res = final_res.append(row)
         else:
-            if row['conf'] < final_res.loc[idx, 'conf']:
+            if row['conf'] < final_res[final_res['outlier'].apply(lambda x: x == row['outlier'])].loc[idx, 'conf']:
                 final_res.loc[idx] = row
 if len(final_res) > 0:  
     final_res['conf'] = 1 - final_res['conf']
