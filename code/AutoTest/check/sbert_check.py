@@ -8,15 +8,6 @@ def get_farthest_val_and_score(dist_val, dist_embeddings, ref_embed):
     farthest_idx = np.argmax(distance_list)
     return dist_val[farthest_idx], distance_list[farthest_idx]
 
-def get_all_val_and_score_over_thres(dist_val, dist_embeddings, ref_embed, dist_thres):
-    distance_list = sbert_utils.dist_embeddings_to_ref(dist_embeddings, ref_embed)
-    farthest_idx = np.argmax(distance_list)
-    if distance_list[farthest_idx] < dist_thres:
-        return dist_val[farthest_idx], distance_list[farthest_idx]
-    vals = [val for i, val in enumerate(dist_val) if distance_list[i] >= dist_thres]
-
-    return vals, distance_list[farthest_idx]
-
 def sbert_check_parallel_core(ns, start, end, queue):
         df = pd.DataFrame(ns.df[start : end], columns = ns.df_col, index = ns.df_idx[start : end])
         sbert_dist_val_embeddings = pd.Series(ns.sbert_dist_val_embeddings[start : end], index = ns.sbert_dist_val_embeddings_idx[start : end])
@@ -36,7 +27,7 @@ def sbert_check_parallel_core(ns, start, end, queue):
             matching_rows = matching_rows.assign(outlier = None, pre = None, outlier_score = -100, conf = -100, thres = -100, cohenh = -100, contingency = None)
             matching_rows
             ref_embed = sbert_utils.decide_embedding(ref)
-            matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_all_val_and_score_over_thres(row['dist_val'], row['sbert_dist_val_embeddings'], ref_embed, dist_thres), axis = 1, result_type = 'expand')
+            matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_farthest_val_and_score(row['dist_val'], row['sbert_dist_val_embeddings'], ref_embed), axis = 1, result_type = 'expand')
             matching_rows = matching_rows[matching_rows['outlier_score'] >= dist_thres].copy()
             if len(matching_rows) == 0: continue
             matching_rows['conf'] = conf
