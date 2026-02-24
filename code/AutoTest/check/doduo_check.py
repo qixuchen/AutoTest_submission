@@ -9,16 +9,6 @@ def get_farthest_val_and_score(dist_val, dist_val_scores, label):
     farthest_idx = np.argmin(label_score)
     return dist_val[farthest_idx], label_score[farthest_idx]
 
-def get_all_val_and_score_over_thres(dist_val, dist_val_scores, label, score_thres):
-    label_idx = doduo_utils.class_list.index(label)
-    label_score = dist_val_scores[0][:, label_idx]
-    farthest_idx = np.argmin(label_score)
-    
-    if label_score[farthest_idx] > score_thres:
-        return dist_val[farthest_idx], label_score[farthest_idx]
-    vals = [val for i, val in enumerate(dist_val) if label_score[i] <= score_thres]
-    return vals, label_score[farthest_idx]
-
 def doduo_check_parallel_core(ns, start, end, queue):
         df = pd.DataFrame(ns.df[start : end], columns = ns.df_col, index = ns.df_idx[start : end])
         doduo_dist_val_scores = pd.Series(ns.doduo_dist_val_scores[start : end], index = ns.doduo_dist_val_scores_idx[start : end])
@@ -37,7 +27,6 @@ def doduo_check_parallel_core(ns, start, end, queue):
             if len(matching_rows) == 0: continue
             matching_rows = matching_rows.assign(outlier = None, pre = None, outlier_score = -100, conf = -100, thres = -100, cohenh = -100, contingency = None)
             matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_farthest_val_and_score(row['dist_val'], row['doduo_dist_val_scores'], label), axis = 1, result_type = 'expand')
-            matching_rows[['outlier', 'outlier_score']] = matching_rows.apply(lambda row: get_all_val_and_score_over_thres(row['dist_val'], row['doduo_dist_val_scores'], label, score_thres), axis = 1, result_type = 'expand')
             matching_rows = matching_rows[matching_rows['outlier_score'] <= score_thres].copy()
             if len(matching_rows) == 0: continue
             matching_rows['conf'] = conf
