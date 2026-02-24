@@ -5,13 +5,10 @@ import multiprocessing as mp
 from util import utils, pattern_utils
 
 def get_farthest_val_and_score(dist_val, pattern):
-    vals = []
     for val in dist_val:
         if re.match(pattern, val) == None:
-            vals.append(val)
-    if len(vals) == 0:
-        return None, 0
-    return vals, 0
+            return val, 0
+    return None, 0
 
 
 def pattern_check(df, test_matching_dict, rule_list):
