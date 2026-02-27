@@ -75,11 +75,16 @@ if any([rule[1][0] == 'validator' for rule in rule_list]):
 final_res = pd.DataFrame()
 for r in results:
     for idx, row in r.iterrows():
-        if idx not in final_res.index or row["outlier"] not in final_res["outlier"].to_list():
+        if final_res.empty:
+            final_res = final_res.append(row)
+            continue
+        duplicate_mask = (final_res.index == idx) & (final_res["outlier"].apply(lambda x: x == row["outlier"]))
+
+        if not duplicate_mask.any():
             final_res = final_res.append(row)
         else:
-            if row['conf'] < final_res[final_res['outlier'].apply(lambda x: x == row['outlier'])].loc[idx, 'conf']:
-                final_res.loc[idx] = row
+            if row['conf'] < final_res.loc[duplicate_mask, 'conf'].values[0]:
+                final_res.loc[duplicate_mask] = row.values
 if len(final_res) > 0:  
     final_res['conf'] = 1 - final_res['conf']
     final_res = final_res.sort_values('conf', ascending = False).rename(columns={"rule": "SDC"})
