@@ -51,35 +51,40 @@ test_matching_dict = utils.build_matching_idx_dict_from_pre_list_parallel(df, pr
 results = []
 if any([rule[1][0] == 'cta' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'cta']
-    results += sherlock_check.sherlock_check_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2)
+    results += sherlock_check.sherlock_all_outliers_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2)
 if any([rule[1][0] == 'doduo' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'doduo']
-    results += doduo_check.doduo_check_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2, doduo_dist_val_scores = doduo_dist_val_scores)
+    results += doduo_check.doduo_all_outliers_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2, doduo_dist_val_scores = doduo_dist_val_scores)
 if any([rule[1][0] == 'embed' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'embed']
-    results += embed_check.embed_check_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2)
+    results += embed_check.embed_all_outliers_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2)
 if any([rule[1][0] == 'sbert' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'sbert']
-    results += sbert_check.sbert_check_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2, sbert_dist_val_embeddings = sbert_dist_val_embeddings)
+    results += sbert_check.sbert_all_outliers_parallel(df, test_matching_dict, sub_rule_list, n_proc = 2, sbert_dist_val_embeddings = sbert_dist_val_embeddings)
 if any([rule[1][0] == 'pattern' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'pattern']
-    results += pattern_check.pattern_check(df, test_matching_dict, sub_rule_list)
+    results += pattern_check.pattern_all_outliers(df, test_matching_dict, sub_rule_list)
 if any([rule[1][0] == 'pyfunc' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'pyfunc']
-    results += pyfunc_check.pyfunc_check(df, test_matching_dict, sub_rule_list)
+    results += pyfunc_check.pyfunc_all_outliers(df, test_matching_dict, sub_rule_list)
 if any([rule[1][0] == 'validator' for rule in rule_list]):
     sub_rule_list = [rule for rule in rule_list if rule[1][0] == 'validator']
-    results += validator_check.validator_check(df, test_matching_dict, sub_rule_list)
+    results += validator_check.validator_all_outliers(df, test_matching_dict, sub_rule_list)
     
     
 final_res = pd.DataFrame()
 for r in results:
     for idx, row in r.iterrows():
-        if idx not in final_res.index or row["outlier"] not in final_res["outlier"].to_list():
+        if final_res.empty:
+            final_res = final_res.append(row)
+            continue
+        duplicate_mask = (final_res.index == idx) & (final_res["outlier"].apply(lambda x: x == row["outlier"]))
+
+        if not duplicate_mask.any():
             final_res = final_res.append(row)
         else:
-            if row['conf'] < final_res.loc[idx, 'conf']:
-                final_res.loc[idx] = row
+            if row['conf'] < final_res.loc[duplicate_mask, 'conf'].values[0]:
+                final_res.loc[duplicate_mask] = row.values
 if len(final_res) > 0:  
     final_res['conf'] = 1 - final_res['conf']
     final_res = final_res.sort_values('conf', ascending = False).rename(columns={"rule": "SDC"})
