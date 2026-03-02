@@ -84,7 +84,7 @@ for r in results:
             final_res = final_res.append(row)
         else:
             if row['conf'] < final_res.loc[duplicate_mask, 'conf'].values[0]:
-                final_res.loc[duplicate_mask] = row.values
+                final_res = final_res[~duplicate_mask].append(row)
 if len(final_res) > 0:  
     final_res['conf'] = 1 - final_res['conf']
     final_res = final_res.sort_values('conf', ascending = False).rename(columns={"rule": "SDC"})
